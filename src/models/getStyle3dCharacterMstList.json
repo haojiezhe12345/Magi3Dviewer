@@ -1,0 +1,611 @@
+{
+  "url": "/api/mst/getStyle3dCharacterMstList",
+  "status": 200,
+  "payload": {
+    "mstList": [
+      {
+        "style3dCharacterMstId": 100101,
+        "type": 1,
+        "name": "鹿目まどか/魔法少女",
+        "resourceName": "chara_100107_battle_unit",
+        "homeMotionResourceName": "chara_10010701_home",
+        "sortOrder": 100101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100102,
+        "type": 1,
+        "name": "アルティメットまどか/魔法少女",
+        "resourceName": "chara_113701_battle_unit",
+        "homeMotionResourceName": "chara_11370101_home",
+        "sortOrder": 100102,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100103,
+        "type": 1,
+        "name": "鹿目まどか/水着",
+        "resourceName": "chara_100106_battle_unit",
+        "homeMotionResourceName": "chara_10010601_home",
+        "sortOrder": 100103,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100201,
+        "type": 1,
+        "name": "暁美ほむら/魔法少女",
+        "resourceName": "chara_100202_battle_unit",
+        "homeMotionResourceName": "chara_10020201_home",
+        "sortOrder": 100201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100202,
+        "type": 1,
+        "name": "暁美ほむら/魔法少女(眼鏡)",
+        "resourceName": "chara_100201_battle_unit",
+        "homeMotionResourceName": "chara_10020101_home",
+        "sortOrder": 100202,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100203,
+        "type": 1,
+        "name": "暁美ほむら/魔法少女(リボン)",
+        "resourceName": "chara_100203_battle_unit",
+        "homeMotionResourceName": "chara_10020301_home",
+        "sortOrder": 100203,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100301,
+        "type": 1,
+        "name": "巴マミ/魔法少女",
+        "resourceName": "chara_100301_battle_unit",
+        "homeMotionResourceName": "chara_10030101_home",
+        "sortOrder": 100301,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100302,
+        "type": 1,
+        "name": "巴マミ/水着",
+        "resourceName": "chara_100303_battle_unit",
+        "homeMotionResourceName": "chara_10030301_home",
+        "sortOrder": 100302,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100303,
+        "type": 1,
+        "name": "ホーリーマミ/魔法少女",
+        "resourceName": "chara_113901_battle_unit",
+        "homeMotionResourceName": "chara_11390101_home",
+        "sortOrder": 100303,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100304,
+        "type": 1,
+        "name": "巴マミ/ハロウィン",
+        "resourceName": "chara_100302_battle_unit",
+        "homeMotionResourceName": "chara_10030201_home",
+        "sortOrder": 100304,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100401,
+        "type": 1,
+        "name": "美樹さやか/魔法少女",
+        "resourceName": "chara_100401_battle_unit",
+        "homeMotionResourceName": "chara_10040101_home",
+        "sortOrder": 100401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100402,
+        "type": 1,
+        "name": "美樹さやか/水着",
+        "resourceName": "chara_100402_battle_unit",
+        "homeMotionResourceName": "chara_10040201_home",
+        "sortOrder": 100402,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100403,
+        "type": 1,
+        "name": "美樹さやか/クリスマス",
+        "resourceName": "chara_100403_battle_unit",
+        "homeMotionResourceName": "chara_10040301_home",
+        "sortOrder": 100403,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100501,
+        "type": 1,
+        "name": "佐倉杏子/魔法少女",
+        "resourceName": "chara_100501_battle_unit",
+        "homeMotionResourceName": "chara_10050101_home",
+        "sortOrder": 100501,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100502,
+        "type": 1,
+        "name": "佐倉杏子/クリスマス",
+        "resourceName": "chara_100503_battle_unit",
+        "homeMotionResourceName": "chara_10050301_home",
+        "sortOrder": 100502,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100701,
+        "type": 1,
+        "name": "愛生まばゆ/魔法少女",
+        "resourceName": "chara_100701_battle_unit",
+        "homeMotionResourceName": "chara_10070101_home",
+        "sortOrder": 100701,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100702,
+        "type": 1,
+        "name": "愛生まばゆ/魔法少女2",
+        "resourceName": "chara_100702_battle_unit",
+        "homeMotionResourceName": "chara_10070201_home",
+        "sortOrder": 100702,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100801,
+        "type": 1,
+        "name": "環いろは/魔法少女",
+        "resourceName": "chara_100801_battle_unit",
+        "homeMotionResourceName": "chara_10080101_home",
+        "sortOrder": 100801,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100802,
+        "type": 1,
+        "name": "環いろは/魔法少女(ドッペル)",
+        "resourceName": "chara_100805_battle_unit",
+        "homeMotionResourceName": "chara_10080501_home",
+        "sortOrder": 100802,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 100901,
+        "type": 1,
+        "name": "七海やちよ/魔法少女",
+        "resourceName": "chara_100901_battle_unit",
+        "homeMotionResourceName": "chara_10090101_home",
+        "sortOrder": 100901,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101001,
+        "type": 1,
+        "name": "由比鶴乃/魔法少女",
+        "resourceName": "chara_101001_battle_unit",
+        "homeMotionResourceName": "chara_10100101_home",
+        "sortOrder": 101001,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101101,
+        "type": 1,
+        "name": "二葉さな/魔法少女",
+        "resourceName": "chara_101101_battle_unit",
+        "homeMotionResourceName": "chara_10110101_home",
+        "sortOrder": 101101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101201,
+        "type": 1,
+        "name": "深月フェリシア/魔法少女",
+        "resourceName": "chara_101201_battle_unit",
+        "homeMotionResourceName": "chara_10120101_home",
+        "sortOrder": 101201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101301,
+        "type": 1,
+        "name": "梓みふゆ/魔法少女",
+        "resourceName": "chara_101301_battle_unit",
+        "homeMotionResourceName": "chara_10130101_home",
+        "sortOrder": 101301,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101401,
+        "type": 1,
+        "name": "十咎ももこ/魔法少女",
+        "resourceName": "chara_101401_battle_unit",
+        "homeMotionResourceName": "chara_10140101_home",
+        "sortOrder": 101401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101501,
+        "type": 1,
+        "name": "水波レナ/魔法少女",
+        "resourceName": "chara_101501_battle_unit",
+        "homeMotionResourceName": "chara_10150101_home",
+        "sortOrder": 101501,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101601,
+        "type": 1,
+        "name": "秋野かえで/魔法少女",
+        "resourceName": "chara_101601_battle_unit",
+        "homeMotionResourceName": "chara_10160101_home",
+        "sortOrder": 101601,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101701,
+        "type": 1,
+        "name": "御園かりん/魔法少女",
+        "resourceName": "chara_101701_battle_unit",
+        "homeMotionResourceName": "chara_10170101_home",
+        "sortOrder": 101701,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101801,
+        "type": 1,
+        "name": "竜城明日香/魔法少女",
+        "resourceName": "chara_101801_battle_unit",
+        "homeMotionResourceName": "chara_10180101_home",
+        "sortOrder": 101801,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 101901,
+        "type": 1,
+        "name": "里見灯花/魔法少女",
+        "resourceName": "chara_101901_battle_unit",
+        "homeMotionResourceName": "chara_10190101_home",
+        "sortOrder": 101901,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102001,
+        "type": 1,
+        "name": "柊ねむ/魔法少女",
+        "resourceName": "chara_102001_battle_unit",
+        "homeMotionResourceName": "chara_10200101_home",
+        "sortOrder": 102001,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102101,
+        "type": 1,
+        "name": "アリナ・グレイ/魔法少女",
+        "resourceName": "chara_102101_battle_unit",
+        "homeMotionResourceName": "chara_10210101_home",
+        "sortOrder": 102101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102102,
+        "type": 1,
+        "name": "アリナ・グレイ/ハロウィン",
+        "resourceName": "chara_102102_battle_unit",
+        "homeMotionResourceName": "chara_10210201_home",
+        "sortOrder": 102102,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102201,
+        "type": 1,
+        "name": "環うい/魔法少女",
+        "resourceName": "chara_102201_battle_unit",
+        "homeMotionResourceName": "chara_10220101_home",
+        "sortOrder": 102201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102401,
+        "type": 1,
+        "name": "八雲みたま/魔法少女",
+        "resourceName": "chara_102401_battle_unit",
+        "homeMotionResourceName": "chara_10240101_home",
+        "sortOrder": 102401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102501,
+        "type": 1,
+        "name": "天音月夜/魔法少女",
+        "resourceName": "chara_102501_battle_unit",
+        "homeMotionResourceName": "chara_10250101_home",
+        "sortOrder": 102501,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 102601,
+        "type": 1,
+        "name": "天音月咲/魔法少女",
+        "resourceName": "chara_102601_battle_unit",
+        "homeMotionResourceName": "chara_10260101_home",
+        "sortOrder": 102601,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 105801,
+        "type": 1,
+        "name": "空穂夏希/魔法少女",
+        "resourceName": "chara_105801_battle_unit",
+        "homeMotionResourceName": "chara_10580101_home",
+        "sortOrder": 105801,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 106101,
+        "type": 1,
+        "name": "常盤ななか/魔法少女",
+        "resourceName": "chara_106101_battle_unit",
+        "homeMotionResourceName": "chara_10610101_home",
+        "sortOrder": 106101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 106701,
+        "type": 1,
+        "name": "夏目かこ/魔法少女",
+        "resourceName": "chara_106701_battle_unit",
+        "homeMotionResourceName": "chara_10670101_home",
+        "sortOrder": 106701,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 106801,
+        "type": 1,
+        "name": "純美雨/魔法少女",
+        "resourceName": "chara_106801_battle_unit",
+        "homeMotionResourceName": "chara_10680101_home",
+        "sortOrder": 106801,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 106901,
+        "type": 1,
+        "name": "伊吹れいら/魔法少女",
+        "resourceName": "chara_106901_battle_unit",
+        "homeMotionResourceName": "chara_10690101_home",
+        "sortOrder": 106901,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 107001,
+        "type": 1,
+        "name": "桑水せいか/魔法少女",
+        "resourceName": "chara_107001_battle_unit",
+        "homeMotionResourceName": "chara_10700101_home",
+        "sortOrder": 107001,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 107101,
+        "type": 1,
+        "name": "相野みと/魔法少女",
+        "resourceName": "chara_107101_battle_unit",
+        "homeMotionResourceName": "chara_10710101_home",
+        "sortOrder": 107101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 107201,
+        "type": 1,
+        "name": "粟根こころ/魔法少女",
+        "resourceName": "chara_107201_battle_unit",
+        "homeMotionResourceName": "chara_10720101_home",
+        "sortOrder": 107201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 107401,
+        "type": 1,
+        "name": "更紗帆奈/魔法少女",
+        "resourceName": "chara_107401_battle_unit",
+        "homeMotionResourceName": "chara_10740101_home",
+        "sortOrder": 107401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 107601,
+        "type": 1,
+        "name": "眞尾ひみか/魔法少女",
+        "resourceName": "chara_107601_battle_unit",
+        "homeMotionResourceName": "chara_10760101_home",
+        "sortOrder": 107601,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108001,
+        "type": 1,
+        "name": "五十鈴れん/魔法少女",
+        "resourceName": "chara_108001_battle_unit",
+        "homeMotionResourceName": "chara_10800101_home",
+        "sortOrder": 108001,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108002,
+        "type": 1,
+        "name": "五十鈴れん/クリスマス",
+        "resourceName": "chara_108002_battle_unit",
+        "homeMotionResourceName": "chara_10800201_home",
+        "sortOrder": 108002,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108101,
+        "type": 1,
+        "name": "静海このは/魔法少女",
+        "resourceName": "chara_108101_battle_unit",
+        "homeMotionResourceName": "chara_10810101_home",
+        "sortOrder": 108101,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108201,
+        "type": 1,
+        "name": "遊佐葉月/魔法少女",
+        "resourceName": "chara_108201_battle_unit",
+        "homeMotionResourceName": "chara_10820101_home",
+        "sortOrder": 108201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108301,
+        "type": 1,
+        "name": "三栗あやめ/魔法少女",
+        "resourceName": "chara_108301_battle_unit",
+        "homeMotionResourceName": "chara_10830101_home",
+        "sortOrder": 108301,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108401,
+        "type": 1,
+        "name": "加賀見まさら/魔法少女",
+        "resourceName": "chara_108401_battle_unit",
+        "homeMotionResourceName": "chara_10840101_home",
+        "sortOrder": 108401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108601,
+        "type": 1,
+        "name": "綾野梨花/魔法少女",
+        "resourceName": "chara_108601_battle_unit",
+        "homeMotionResourceName": "chara_10860101_home",
+        "sortOrder": 108601,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 108602,
+        "type": 1,
+        "name": "綾野梨花/クリスマス",
+        "resourceName": "chara_108602_battle_unit",
+        "homeMotionResourceName": "chara_10860201_home",
+        "sortOrder": 108602,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 109001,
+        "type": 1,
+        "name": "千秋理子/魔法少女",
+        "resourceName": "chara_109001_battle_unit",
+        "homeMotionResourceName": "chara_10900101_home",
+        "sortOrder": 109001,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 109201,
+        "type": 1,
+        "name": "安名メル/魔法少女",
+        "resourceName": "chara_109201_battle_unit",
+        "homeMotionResourceName": "chara_10920101_home",
+        "sortOrder": 109201,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 109801,
+        "type": 1,
+        "name": "万年桜のウワサ/魔法少女",
+        "resourceName": "chara_109801_battle_unit",
+        "homeMotionResourceName": "chara_10980101_home",
+        "sortOrder": 109801,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 110701,
+        "type": 1,
+        "name": "アシュリー・テイラー/魔法少女",
+        "resourceName": "chara_110701_battle_unit",
+        "homeMotionResourceName": "chara_11070101_home",
+        "sortOrder": 110701,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 111401,
+        "type": 1,
+        "name": "入名クシュ/魔法少女",
+        "resourceName": "chara_111401_battle_unit",
+        "homeMotionResourceName": "chara_11140101_home",
+        "sortOrder": 111401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 112401,
+        "type": 1,
+        "name": "美国織莉子/魔法少女",
+        "resourceName": "chara_112401_battle_unit",
+        "homeMotionResourceName": "chara_11240101_home",
+        "sortOrder": 112401,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 112501,
+        "type": 1,
+        "name": "呉キリカ/魔法少女",
+        "resourceName": "chara_112501_battle_unit",
+        "homeMotionResourceName": "chara_11250101_home",
+        "sortOrder": 112501,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 112601,
+        "type": 1,
+        "name": "千歳ゆま/魔法少女",
+        "resourceName": "chara_112601_battle_unit",
+        "homeMotionResourceName": "chara_11260101_home",
+        "sortOrder": 112601,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 113401,
+        "type": 3,
+        "name": "名前のない少女",
+        "resourceName": "chara_113401_model",
+        "homeMotionResourceName": "",
+        "sortOrder": 200,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 113501,
+        "type": 3,
+        "name": "A-Q",
+        "resourceName": "chara_113501_model",
+        "homeMotionResourceName": "",
+        "sortOrder": 300,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 113601,
+        "type": 3,
+        "name": "ヨダカ",
+        "resourceName": "chara_113601_model",
+        "homeMotionResourceName": "",
+        "sortOrder": 400,
+        "isExistVoice": true
+      },
+      {
+        "style3dCharacterMstId": 114801,
+        "type": 2,
+        "name": "べべ",
+        "resourceName": "chara_114801_model",
+        "homeMotionResourceName": "",
+        "sortOrder": 100,
+        "isExistVoice": true
+      }
+    ]
+  }
+}
