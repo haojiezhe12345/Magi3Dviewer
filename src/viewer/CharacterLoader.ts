@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { mixTexture, parseCtrlMap } from './Texture';
+import { channel2AlphaMap, imageData2Texture, input2ImageData, mixImage, parseCtrlMap } from './Texture';
 
 /*
 examples:
@@ -50,6 +50,9 @@ function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) =>
 }
 
 export async function loadCharacter(scene: THREE.Scene, characterId: number | string): Promise<THREE.Group> {
+    if (typeof characterId == 'string') {
+        characterId = parseInt(characterId)
+    }
     return new Promise(resolve => {
         // filter out model and textures
         const model = ObjFindByKey(allModels, x => x.includes(`chara_${characterId}_battle_unit/`))
@@ -62,59 +65,105 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
             // process and apply textures
             console.log('Using textures:', modelTextures)
             modelObject.traverse(async (child) => {
-                if (!(child as THREE.Mesh).isMesh) {
-                    return
-                }
+                if (!(child as THREE.Mesh).isMesh) return
                 const mesh = child as THREE.Mesh;
 
-                /*
-                mesh.name may be:
-                Acc_Mesh (hair accessories)
-                Body_Mesh
-                Face_Mesh
-                Hair_Mesh
-                weapon_mesh (if there's only one weapon)
-                weapon_a_mesh
-                weapon_b_mesh
-                */
-                const name = mesh.name
-                    .replace('_Mesh', '')
-                    .replace('_mesh', '')
-                    .toLowerCase();
+                try {
+                    /*
+                    mesh.name may be:
+                    Acc_Mesh (hair accessories)
+                    Body_Mesh
+                    Face_Mesh
+                    Hair_Mesh
+                    weapon_mesh (if there's only one weapon)
+                    weapon_a_mesh
+                    weapon_b_mesh
+                    */
+                    const name = mesh.name
+                        .replace('_Mesh', '')
+                        .replace('_mesh', '')
+                        .toLowerCase();
 
-                let meshTextures = ObjFilterByKey(modelTextures, x => x.includes(name))
-                if (Object.keys(meshTextures).length == 0) {
-                    // `weapon_a_mesh` and `weapon_b_mesh` may use the same `weapon_a.png`
-                    if (name.includes('weapon')) {
-                        meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
+                    let meshTextures = ObjFilterByKey(modelTextures, x => x.includes(name))
+                    if (Object.keys(meshTextures).length == 0) {
+                        // `weapon_a_mesh` and `weapon_b_mesh` may use the same `weapon_a.png`
+                        if (name.includes('weapon')) {
+                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
+                        }
                     }
-                }
-                console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
+                    console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
-                const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))
-                const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
-                const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
+                    const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))
+                    const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
+                    const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
 
-                // mix color and shadow map and set texture
-                if (name.includes('face')) {
-                    // face does not have control map
-                    mesh.material = new THREE.MeshStandardMaterial({
-                        map: await mixTexture(shadowMap, colorMap, 0.5)
-                    });
-                } else {
-                    const { ctrlMapData, pbrTex, alphaTex } = await parseCtrlMap(ctrlMap)
-                    const diffuseTex = await mixTexture(shadowMap, colorMap, ctrlMapData)
-                    diffuseTex.anisotropy = 8
+                    console.log(colorMap, shadowMap, ctrlMap)
 
-                    mesh.material = new THREE.MeshStandardMaterial({
-                        map: diffuseTex,
-                        metalnessMap: pbrTex, // blue channel
-                        roughnessMap: pbrTex, // green channel
-                        metalness: 1.0,
-                        roughness: 1.0,
-                        transparent: true,
-                        alphaMap: alphaTex,
-                    });
+                    // mix color and shadow map and set texture
+                    if (name.includes('face')) {
+                        // face does not have control map
+                        mesh.material = new THREE.MeshStandardMaterial({
+                            map: imageData2Texture(await mixImage(shadowMap, colorMap, 0.5), { colorSpace: THREE.SRGBColorSpace })
+                        });
+                    }
+                    else {
+                        let ctrlMapData: ImageData,
+                            alphaData: ImageData,
+                            alphaTex: THREE.Texture | undefined,
+                            pbrTex: THREE.Texture,
+                            finalTex: THREE.Texture;
+
+                        if (characterId == 113701 && name.includes('body')) {
+                            /*
+                            ultimate madoka
+
+                            body_color ---\
+                                           |--> body_ctrl[red] --\
+                            body_shadow --/                       \
+                                                                   |--> body_ctrl[alpha] --> final texture
+                            body_space_color ---------------------/
+                                                                      body_shadow[alpha] --> final alpha map
+                            */
+                            ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
+                            const shadowMapData = await input2ImageData(shadowMap)
+                            alphaTex = channel2AlphaMap(shadowMapData)
+                            const bodyImg = await mixImage(shadowMapData, colorMap, ctrlMapData)
+                            const spaceImg = ObjFindByKey(meshTextures, x => x.includes('space'))
+                            finalTex = imageData2Texture(await mixImage(bodyImg, spaceImg, alphaData), { colorSpace: THREE.SRGBColorSpace })
+                        }
+                        else {
+                            /*
+                            color ---\
+                                      |--> ctrl[red] --> final texture
+                            shadow --/
+                                         ctrl[alpha] --> final alpha map
+                            */
+                            ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
+                            alphaTex = imageData2Texture(alphaData)
+                            finalTex = imageData2Texture(await mixImage(shadowMap, colorMap, ctrlMapData), { colorSpace: THREE.SRGBColorSpace })
+                        }
+
+                        alphaTex.magFilter = THREE.LinearFilter
+                        alphaTex.minFilter = THREE.LinearFilter
+                        alphaTex.anisotropy = 4
+
+                        finalTex.magFilter = THREE.LinearFilter
+                        finalTex.minFilter = THREE.LinearFilter
+                        finalTex.anisotropy = 4
+
+                        mesh.material = new THREE.MeshStandardMaterial({
+                            map: finalTex,
+                            metalnessMap: pbrTex, // blue channel
+                            roughnessMap: pbrTex, // green channel
+                            metalness: 1.0,
+                            roughness: 1.0,
+                            transparent: Boolean(alphaTex),
+                            alphaMap: alphaTex,
+                        });
+                    }
+
+                } catch (error) {
+                    console.error(`Error applying texture for ${mesh.name}:`, error)
                 }
             });
 

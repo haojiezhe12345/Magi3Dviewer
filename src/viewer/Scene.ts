@@ -14,6 +14,8 @@ export function createScene(element: HTMLElement) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     element.appendChild(renderer.domElement);
 
+    console.log('MaxAnisotropy:', renderer.capabilities.getMaxAnisotropy())
+
     // 2. Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
