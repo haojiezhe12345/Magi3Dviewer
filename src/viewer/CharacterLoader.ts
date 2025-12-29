@@ -4,25 +4,25 @@ import { mixTexture, parseCtrlMap } from './Texture';
 
 /*
 examples:
-/src/models/chara_100101_battle_unit/chara_100101_battle_unit.fbx
-/src/models/chara_100107_battle_unit/chara_100107_battle_unit.fbx
+../models/chara_100101_battle_unit/chara_100101_battle_unit.fbx
+../models/chara_100107_battle_unit/chara_100107_battle_unit.fbx
 */
-const allModels = Object.values(import.meta.glob(`../models/**/*.fbx`, { as: 'url', eager: true }))
+const allModels = import.meta.glob(`../models/**/*.fbx`, { as: 'url', eager: true })
 /*
 examples:
-/src/models/chara_100101_battle_unit/chara_100101_acc_color.png (hair accessories)
-/src/models/chara_100101_battle_unit/chara_100101_body_color.png
-/src/models/chara_100101_battle_unit/chara_100101_face_color.png
-/src/models/chara_100101_battle_unit/chara_100101_hair_color.png
-/src/models/chara_100101_battle_unit/chara_100101_weapon_a_color.png (there may be weapon_b, c, ...)
+../models/chara_100101_battle_unit/chara_100101_acc_color.png (hair accessories)
+../models/chara_100101_battle_unit/chara_100101_body_color.png
+../models/chara_100101_battle_unit/chara_100101_face_color.png
+../models/chara_100101_battle_unit/chara_100101_hair_color.png
+../models/chara_100101_battle_unit/chara_100101_weapon_a_color.png (there may be weapon_b, c, ...)
 */
-const allTextures = Object.values(import.meta.glob(`../models/**/*.png`, { as: 'url', eager: true }))
+const allTextures = import.meta.glob(`../models/**/*.png`, { as: 'url', eager: true })
 
 console.log('All models:', allModels)
 console.log('All textures:', allTextures)
 
 export function getCharacterIdList() {
-    return allModels.map(x => parseInt(x.match(/chara_(\d+)_battle_unit\//)![1]))
+    return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+)_battle_unit\//)![1]))
 }
 
 // suppress warning `THREE.FBXLoader: unknown attribute mapping type NoMappingInformation`
@@ -36,11 +36,24 @@ console.warn = function (...data: any[]) {
     origConsoleWarn(...data)
 }
 
+function ObjFindByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
+    return obj[Object.keys(obj).find(x => predicate(x))!]
+}
+
+function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
+    return Object.keys(obj)
+        .filter(x => predicate(x))
+        .reduce((newObj, key) => {
+            newObj[key] = obj[key]
+            return newObj
+        }, {} as Record<string, T>)
+}
+
 export async function loadCharacter(scene: THREE.Scene, characterId: number | string): Promise<THREE.Group> {
     return new Promise(resolve => {
         // filter out model and textures
-        const model = allModels.find(x => x.includes(`chara_${characterId}_battle_unit/`))!
-        const modelTextures = allTextures.filter(x => x.includes(`chara_${characterId}_battle_unit/`))
+        const model = ObjFindByKey(allModels, x => x.includes(`chara_${characterId}_battle_unit/`))
+        const modelTextures = ObjFilterByKey(allTextures, x => x.includes(`chara_${characterId}_battle_unit/`))
 
         // load model
         const fbxLoader = new FBXLoader();
@@ -69,18 +82,18 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                     .replace('_mesh', '')
                     .toLowerCase();
 
-                let meshTextures = modelTextures.filter(x => x.includes(name))
-                if (meshTextures.length == 0) {
+                let meshTextures = ObjFilterByKey(modelTextures, x => x.includes(name))
+                if (Object.keys(meshTextures).length == 0) {
                     // `weapon_a_mesh` and `weapon_b_mesh` may use the same `weapon_a.png`
                     if (name.includes('weapon')) {
-                        meshTextures = modelTextures.filter(x => x.includes('weapon'))
+                        meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
                     }
                 }
                 console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
-                const colorMap = meshTextures.find(x => x.includes('color'))!
-                const shadowMap = meshTextures.find(x => x.includes('shadow'))!
-                const ctrlMap = meshTextures.find(x => x.includes('ctrl'))!
+                const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))
+                const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
+                const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
 
                 // mix color and shadow map and set texture
                 if (name.includes('face')) {
