@@ -112,6 +112,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                         roughnessMap: pbrTex, // green channel
                         metalness: 1.0,
                         roughness: 1.0,
+                        transparent: true,
                         alphaMap: alphaTex,
                     });
                 }
