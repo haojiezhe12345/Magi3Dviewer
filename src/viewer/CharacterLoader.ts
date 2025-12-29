@@ -143,9 +143,11 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                             finalTex = imageData2Texture(await mixImage(shadowMap, colorMap, ctrlMapData), { colorSpace: THREE.SRGBColorSpace })
                         }
 
-                        alphaTex.magFilter = THREE.LinearFilter
-                        alphaTex.minFilter = THREE.LinearFilter
-                        alphaTex.anisotropy = 4
+                        if (alphaTex) {
+                            alphaTex.magFilter = THREE.LinearFilter
+                            alphaTex.minFilter = THREE.LinearFilter
+                            alphaTex.anisotropy = 4
+                        }
 
                         finalTex.magFilter = THREE.LinearFilter
                         finalTex.minFilter = THREE.LinearFilter
@@ -163,7 +165,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                     }
 
                 } catch (error) {
-                    console.error(`Error applying texture for ${mesh.name}:`, error)
+                    console.error(`Error applying texture to ${mesh.name}:`, error)
                 }
             });
 
