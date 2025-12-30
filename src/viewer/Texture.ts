@@ -2,8 +2,12 @@ import * as THREE from 'three';
 
 const texLoader = new THREE.TextureLoader()
 const imgLoader = new THREE.ImageLoader()
+
 const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+const gl = canvas.getContext('webgl2', {
+    premultipliedAlpha: false,
+    alpha: true
+})!;
 
 export async function loadTexture(url: string) {
     const tex = await texLoader.loadAsync(url);
@@ -12,17 +16,40 @@ export async function loadTexture(url: string) {
 }
 
 export async function input2ImageData(input: string | ImageData): Promise<ImageData> {
-    if (typeof input == 'string') {
-        const img = await imgLoader.loadAsync(input);
-        canvas.width = img.width
-        canvas.height = img.height
-        ctx.clearRect(0, 0, img.width, img.height);
-        ctx.drawImage(img, 0, 0);
-        return ctx.getImageData(0, 0, img.width, img.height);
-    }
-    else {
-        return input
-    }
+    if (input instanceof ImageData) return input
+
+    const img = await imgLoader.loadAsync(input);
+    const { width, height } = img
+
+    canvas.width = width
+    canvas.height = height
+    gl.viewport(0, 0, width, height);
+
+    const bitmap = await createImageBitmap(img, {
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none'
+    });
+
+    // Create a texture and upload the bitmap
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
+
+    // Create a framebuffer to read from
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+    // Read the raw bytes
+    const pixels = new Uint8ClampedArray(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    // Clean up
+    gl.deleteTexture(texture);
+    gl.deleteFramebuffer(fb);
+    bitmap.close();
+
+    return new ImageData(pixels, width, height);
 }
 
 export function imageData2Texture(imgData: ImageData, textureProps: Partial<THREE.Texture> = {}) {

@@ -86,8 +86,12 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
 
                     let meshTextures = ObjFilterByKey(modelTextures, x => x.includes(name))
                     if (Object.keys(meshTextures).length == 0) {
+                        // tomoe mami swimsuit
+                        if (characterId == 100303 && ['glass', 'mint', 'tea'].includes(name)) {
+                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon_b'))
+                        }
                         // `weapon_a_mesh` and `weapon_b_mesh` may use the same `weapon_a.png`
-                        if (name.includes('weapon')) {
+                        else if (name.includes('weapon')) {
                             meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
                         }
                     }
@@ -109,7 +113,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                     else {
                         let ctrlMapData: ImageData,
                             alphaData: ImageData,
-                            alphaTex: THREE.Texture | undefined,
+                            alphaTex: THREE.Texture | null = null,
                             pbrTex: THREE.Texture,
                             finalTex: THREE.Texture;
 
