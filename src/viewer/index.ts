@@ -1,39 +1,34 @@
+import * as THREE from 'three'
 import { createScene } from './Scene'
-import { getCharacterIdList, loadCharacter } from './CharacterLoader'
-import type { Group, Scene } from 'three'
+import { getCharacterIdList } from './CharacterLoader'
 import characterList from '../models/getStyle3dCharacterMstList.json'
+import * as CharacterController from './CharacterController'
+import { initSelector } from './UIControls'
 
-let scene: Scene | undefined
-let character: Group | undefined
+const clock = new THREE.Clock()
 
-async function switchCharacter(id: number | string) {
-    if (!scene) return
-
-    if (character) {
-        scene.remove(character)
+function animateLoop() {
+    const delta = clock.getDelta();
+    if (CharacterController.mixer) {
+        CharacterController.mixer.update(delta);
     }
-
-    character = await loadCharacter(scene, id)
 }
 
 export async function setupViewer() {
     const selector = document.getElementById('character-selector') as HTMLSelectElement
 
-    for (const id of getCharacterIdList().map(x => x.toString())) {
-        const option = document.createElement('option')
-        option.value = id
-        option.innerHTML = `${id} - ${characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name || 'Unknown'}`
-        selector.appendChild(option)
-    }
+    initSelector(
+        selector,
+        getCharacterIdList().map(x => x.toString()).reduce((obj, id) => {
+            obj[`${id} - ${characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name || 'Unknown'}`] = id
+            return obj
+        }, {} as Record<string, string>),
+        value => value && CharacterController.switchCharacter(value)
+    )
 
-    selector.onchange = e => {
-        const value = (e!.target as HTMLSelectElement).value
-        if (!value) return
-        switchCharacter(value)
-    }
-
-    scene = createScene(document.getElementById('viewer')!)
-    console.log(scene)
+    const scene = createScene(document.getElementById('viewer')!, animateLoop)
+    Object.assign(window, { scene })
+    CharacterController.setScene(scene)
 
     selector.value = '100107'
     selector.dispatchEvent(new Event('change'))

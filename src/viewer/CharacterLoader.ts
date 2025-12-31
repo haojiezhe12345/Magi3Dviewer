@@ -7,7 +7,7 @@ examples:
 ../models/chara_100101_battle_unit/chara_100101_battle_unit.fbx
 ../models/chara_100107_battle_unit/chara_100107_battle_unit.fbx
 */
-const allModels = import.meta.glob(`../models/**/*.fbx`, { as: 'url', eager: true })
+const allModels = import.meta.glob(`../models/**/*.fbx*`, { as: 'url', eager: true })
 /*
 examples:
 ../models/chara_100101_battle_unit/chara_100101_acc_color.png (hair accessories)
@@ -94,6 +94,10 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                         else if (name.includes('weapon')) {
                             meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
                         }
+                        // defaults to `weapon`
+                        else {
+                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
+                        }
                     }
                     console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
@@ -101,20 +105,22 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                     const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
                     const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
 
-                    console.log(colorMap, shadowMap, ctrlMap)
+                    console.log(`${name} color  -> ${colorMap}`)
+                    console.log(`${name} shadow -> ${shadowMap}`)
+                    console.log(`${name} ctrl   -> ${ctrlMap}`)
 
                     // mix color and shadow map and set texture
                     if (name.includes('face')) {
-                        // face does not have control map
+                        // face does not have control map / should not use
                         mesh.material = new THREE.MeshStandardMaterial({
-                            map: imageData2Texture(await mixImage(shadowMap, colorMap, 0.5), { colorSpace: THREE.SRGBColorSpace })
+                            map: imageData2Texture(await mixImage(shadowMap, colorMap, 0.67), { colorSpace: THREE.SRGBColorSpace })
                         });
                     }
                     else {
-                        let ctrlMapData: ImageData,
+                        let ctrlMapData: ImageData | undefined,
                             alphaData: ImageData,
                             alphaTex: THREE.Texture | null = null,
-                            pbrTex: THREE.Texture,
+                            pbrTex: THREE.Texture | null = null,
                             finalTex: THREE.Texture;
 
                         if (characterId == 113701 && name.includes('body')) {
@@ -142,9 +148,11 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                             shadow --/
                                          ctrl[alpha] --> final alpha map
                             */
-                            ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
-                            alphaTex = imageData2Texture(alphaData)
-                            finalTex = imageData2Texture(await mixImage(shadowMap, colorMap, ctrlMapData), { colorSpace: THREE.SRGBColorSpace })
+                            if (ctrlMap) {
+                                ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
+                                alphaTex = imageData2Texture(alphaData)
+                            }
+                            finalTex = imageData2Texture(await mixImage(shadowMap, colorMap, ctrlMapData || 0.67), { colorSpace: THREE.SRGBColorSpace })
                         }
 
                         if (alphaTex) {
@@ -174,7 +182,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
             });
 
             scene.add(modelObject);
-            console.log('Model loaded successfully');
+            console.log(`Model "${modelObject.name}" loaded successfully`);
             resolve(modelObject)
 
         }, undefined, (error) => console.error(error));

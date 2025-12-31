@@ -12,10 +12,15 @@
     <div id="app">
         <div id="viewer"></div>
         <div id="menu">
-            Select model:
-            <select id="character-selector">
-                <option></option>
-            </select>
+            <div>
+                Model: <select id="character-selector"></select>
+            </div>
+            <div>
+                Animation: <select id="animation-selector"></select>
+                <button id="animation-play">Play</button>
+                <button id="animation-loop">Loop</button>
+                <button id="animation-stop">Stop</button>
+            </div>
         </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

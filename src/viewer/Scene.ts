@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-export function createScene(element: HTMLElement) {
+export function createScene(element: HTMLElement, animateLoopCallback: () => any = () => undefined) {
     // 1. Scene Setup
     const scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x333333);
@@ -33,7 +33,10 @@ export function createScene(element: HTMLElement) {
     // 6. Animation Loop
     function animate() {
         requestAnimationFrame(animate);
+
         controls.update();
+        animateLoopCallback()
+
         renderer.render(scene, camera);
     }
 
