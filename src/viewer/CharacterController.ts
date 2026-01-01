@@ -33,45 +33,48 @@ export async function switchCharacter(id: number | string) {
     characterLoading = true
     characterPending = undefined
 
-    if (character) {
-        scene.remove(character)
-        disposeObject(character)
-        character = undefined
-        mixer = undefined
+    try {
+        if (character) {
+            scene.remove(character)
+            disposeObject(character)
+            character = undefined
+            mixer = undefined
+        }
+
+        character = await loadCharacter(scene, id)
+
+        mixer = new THREE.AnimationMixer(character);
+        mixer.addEventListener('finished', () => playAnimation())
+
+        Object.assign(window, { character, mixer })
+
+        const validAnimationNames = character.animations
+            .filter(x => x.tracks.length > 0)
+            .map(x => x.name.replace(/_\d/, ''))
+            .sort()
+        const selectorOldValue = animationSelector.value
+
+        initSelector(
+            animationSelector,
+            validAnimationNames.reduce((obj, name) => {
+                obj[name] = name
+                return obj
+            }, {} as Record<string, string>),
+            value => value && playAnimation(value)
+        );
+
+        if (validAnimationNames.includes(selectorOldValue)) {
+            animationSelector.value = selectorOldValue
+        }
+
+        playAnimation()
+
+    } finally {
+        setTimeout(() => {
+            characterLoading = false
+            if (characterPending) switchCharacter(characterPending)
+        }, 0);
     }
-
-    character = await loadCharacter(scene, id)
-
-    mixer = new THREE.AnimationMixer(character);
-    mixer.addEventListener('finished', () => playAnimation())
-
-    Object.assign(window, { character, mixer })
-
-    const validAnimationNames = character.animations
-        .filter(x => x.tracks.length > 0)
-        .map(x => x.name.replace(/_\d/, ''))
-        .sort()
-    const selectorOldValue = animationSelector.value
-
-    initSelector(
-        animationSelector,
-        validAnimationNames.reduce((obj, name) => {
-            obj[name] = name
-            return obj
-        }, {} as Record<string, string>),
-        value => value && playAnimation(value)
-    );
-
-    if (validAnimationNames.includes(selectorOldValue)) {
-        animationSelector.value = selectorOldValue
-    }
-
-    playAnimation()
-
-    setTimeout(() => {
-        characterLoading = false
-        if (characterPending) switchCharacter(characterPending)
-    }, 0);
 }
 
 export function playAnimation(name: string | undefined = undefined, loop = false) {
