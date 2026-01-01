@@ -25,7 +25,7 @@ export function getCharacterIdList() {
     return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+)_battle_unit\//)![1]))
 }
 
-const fbxLoadProgressEl = document.getElementById('fbx-load-progress') as HTMLDivElement
+const loadProgressEl = document.getElementById('load-progress') as HTMLDivElement
 
 // suppress warning `THREE.FBXLoader: unknown attribute mapping type NoMappingInformation`
 const origConsoleWarn = console.warn
@@ -64,12 +64,19 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
         const fbxLoader = new FBXLoader();
         console.log('Loading model:', model)
         fbxLoader.load(model, async (modelObject) => {
-            // process and apply textures
-            console.log('Using textures:', modelTextures)
-            modelObject.traverse(async (child) => {
-                if (!(child as THREE.Mesh).isMesh) return
-                const mesh = child as THREE.Mesh;
+            // add model to scene, load textures later
+            scene.add(modelObject);
+            console.log(`Model "${modelObject.name}" loaded successfully`);
+            resolve(modelObject)
 
+            // process and apply textures
+            loadProgressEl.textContent = 'Loading textures...'
+            console.log('Using textures:', modelTextures)
+
+            const meshes: THREE.Mesh[] = []
+            modelObject.traverse(child => (child as THREE.Mesh).isMesh && meshes.push(child as THREE.Mesh))
+
+            for (const mesh of meshes) {
                 try {
                     /*
                     mesh.name may be:
@@ -181,18 +188,16 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                 } catch (error) {
                     console.error(`Error applying texture to ${mesh.name}:`, error)
                 }
-            });
+            }
 
-            scene.add(modelObject);
-            console.log(`Model "${modelObject.name}" loaded successfully`);
-            resolve(modelObject)
+            loadProgressEl.innerHTML = ''
 
         }, (progress) => {
-            if (progress.loaded == progress.total) {
-                fbxLoadProgressEl.innerHTML = ''
-            } else {
-                fbxLoadProgressEl.textContent = `Loading FBX... ${Math.round(progress.loaded / progress.total * 100)}%`
-            }
-        }, (error) => console.error(error));
+            loadProgressEl.textContent = `Loading FBX... ${progress.lengthComputable ? Math.round(progress.loaded / progress.total * 100) + '%' : ''}`
+            // console.log(`FBX load: ${progress.loaded} / ${progress.total}`)
+        }, (error) => {
+            loadProgressEl.textContent = 'Load FAILED'
+            console.error(error)
+        });
     })
 }
