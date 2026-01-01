@@ -1,3 +1,7 @@
+:root {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 body {
     margin: 0;
 }
@@ -12,8 +16,20 @@ body {
     left: 0;
     right: 0;
     color: white;
+    display: flex;
 }
 
-#menu>div {
+#menu-controls {
+    flex: 1;
+}
+
+#menu-controls>div {
     margin: 8px;
+}
+
+#menu-links img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    padding: 8px;
 }

@@ -12,15 +12,20 @@
     <div id="app">
         <div id="viewer"></div>
         <div id="menu">
-            <div>
-                Model: <select id="character-selector"></select>
-                <span id="load-progress"></span>
+            <div id="menu-controls">
+                <div>
+                    Model: <select id="character-selector"></select>
+                </div>
+                <div>
+                    Animation: <select id="animation-selector"></select>
+                    <button id="animation-play">Play</button>
+                    <button id="animation-loop">Loop</button>
+                    <button id="animation-stop">Stop</button>
+                </div>
+                <div id="load-progress"></div>
             </div>
-            <div>
-                Animation: <select id="animation-selector"></select>
-                <button id="animation-play">Play</button>
-                <button id="animation-loop">Loop</button>
-                <button id="animation-stop">Stop</button>
+            <div id="menu-links">
+                <a href="https://github.com/haojiezhe12345/Magi3Dviewer" target="_blank"><img src="/src/github-mark-white.svg"></a>
             </div>
         </div>
     </div>

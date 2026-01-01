@@ -25,7 +25,7 @@ export function getCharacterIdList() {
     return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+)_battle_unit\//)![1]))
 }
 
-const loadProgressEl = document.getElementById('load-progress') as HTMLDivElement
+const loadProgressEl = document.getElementById('load-progress')!
 
 // suppress warning `THREE.FBXLoader: unknown attribute mapping type NoMappingInformation`
 const origConsoleWarn = console.warn
@@ -76,6 +76,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
         // load model
         const fbxLoader = new FBXLoader();
         console.log('Loading model:', model)
+        loadProgressEl.textContent = 'Loading FBX...'
         fbxLoader.load(model, async (modelObject) => {
             // add model to scene, load textures later
             scene.add(modelObject);
