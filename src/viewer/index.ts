@@ -16,10 +16,11 @@ function animateLoop() {
 
 export async function setupViewer() {
     const selector = document.getElementById('character-selector') as HTMLSelectElement
+    const characterStringIdList = getCharacterIdList().map(x => x.toString())
 
     initSelector(
         selector,
-        getCharacterIdList().map(x => x.toString()).reduce((obj, id) => {
+        characterStringIdList.reduce((obj, id) => {
             obj[`${id} - ${characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name || 'Unknown'}`] = id
             return obj
         }, {} as Record<string, string>),
@@ -30,6 +31,11 @@ export async function setupViewer() {
     Object.assign(window, { scene })
     CharacterController.setScene(scene)
 
-    selector.value = '100107'
+    const hashCharacterId = location.hash.replace('#', '')
+    if (characterStringIdList.includes(hashCharacterId)) {
+        selector.value = hashCharacterId
+    } else {
+        selector.value = '100107'
+    }
     selector.dispatchEvent(new Event('change'))
 }

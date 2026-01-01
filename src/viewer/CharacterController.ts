@@ -41,6 +41,8 @@ export async function switchCharacter(id: number | string) {
             mixer = undefined
         }
 
+        location.hash = `${id}`
+
         character = await loadCharacter(scene, id)
 
         mixer = new THREE.AnimationMixer(character);
