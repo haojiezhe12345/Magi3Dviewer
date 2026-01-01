@@ -39,7 +39,8 @@ console.warn = function (...data: any[]) {
 }
 
 function ObjFindByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
-    return obj[Object.keys(obj).find(x => predicate(x))!]
+    const key = Object.keys(obj).find(x => predicate(x))
+    if (key) return obj[key]
 }
 
 function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
@@ -51,13 +52,25 @@ function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) =>
         }, {} as Record<string, T>)
 }
 
+function humanizeBytes(b: number) {
+    if (b < 1024 * 100) { // < 100 KB
+        return (b / 1024).toFixed(1) + ' KB'
+    } else if (b < 1024 * 1024) { // 100 KB - 1 MB
+        return (b / 1024).toFixed(0) + ' KB'
+    } else if (b < 1024 * 1024 * 10) { // 1 MB - 10 MB
+        return (b / 1024 / 1024).toFixed(2) + ' MB'
+    } else { // > 10 MB
+        return (b / 1024 / 1024).toFixed(1) + ' MB'
+    }
+}
+
 export async function loadCharacter(scene: THREE.Scene, characterId: number | string): Promise<THREE.Group> {
     if (typeof characterId == 'string') {
         characterId = parseInt(characterId)
     }
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         // filter out model and textures
-        const model = ObjFindByKey(allModels, x => x.includes(`chara_${characterId}_battle_unit/`))
+        const model = ObjFindByKey(allModels, x => x.includes(`chara_${characterId}_battle_unit/`))!
         const modelTextures = ObjFilterByKey(allTextures, x => x.includes(`chara_${characterId}_battle_unit/`))
 
         // load model
@@ -76,7 +89,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
             const meshes: THREE.Mesh[] = []
             modelObject.traverse(child => (child as THREE.Mesh).isMesh && meshes.push(child as THREE.Mesh))
 
-            for (const mesh of meshes) {
+            await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve) => {
                 try {
                     /*
                     mesh.name may be:
@@ -110,13 +123,13 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                     }
                     console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
-                    const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))
-                    const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
+                    const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))!
+                    const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))!
                     const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
 
-                    console.log(`${name} color  -> ${colorMap}`)
-                    console.log(`${name} shadow -> ${shadowMap}`)
-                    console.log(`${name} ctrl   -> ${ctrlMap}`)
+                    console.log(`${name} color  ->`, colorMap)
+                    console.log(`${name} shadow ->`, shadowMap)
+                    console.log(`${name} ctrl   ->`, ctrlMap)
 
                     // mix color and shadow map and set texture
                     if (name.includes('face')) {
@@ -143,11 +156,11 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                             body_space_color ---------------------/
                                                                       body_shadow[alpha] --> final alpha map
                             */
-                            ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
+                            ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap!))
                             const shadowMapData = await input2ImageData(shadowMap)
                             alphaTex = channel2AlphaMap(shadowMapData)
                             const bodyImg = await mixImage(shadowMapData, colorMap, ctrlMapData)
-                            const spaceImg = ObjFindByKey(meshTextures, x => x.includes('space'))
+                            const spaceImg = ObjFindByKey(meshTextures, x => x.includes('space'))!
                             finalTex = imageData2Texture(await mixImage(bodyImg, spaceImg, alphaData), { colorSpace: THREE.SRGBColorSpace })
                         }
                         else {
@@ -185,19 +198,22 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                         });
                     }
 
+                    resolve()
+
                 } catch (error) {
                     console.error(`Error applying texture to ${mesh.name}:`, error)
                 }
-            }
+            })))
 
             loadProgressEl.innerHTML = ''
 
         }, (progress) => {
-            loadProgressEl.textContent = `Loading FBX... ${progress.lengthComputable ? Math.round(progress.loaded / progress.total * 100) + '%' : ''}`
-            // console.log(`FBX load: ${progress.loaded} / ${progress.total}`)
+            const loaded = humanizeBytes(progress.loaded)
+            const total = humanizeBytes(progress.total)
+            loadProgressEl.textContent = `Loading FBX... ${progress.lengthComputable ? `${loaded} / ${total}` : loaded}`
         }, (error) => {
             loadProgressEl.textContent = 'Load FAILED'
-            console.error(error)
+            reject(error)
         });
     })
 }
