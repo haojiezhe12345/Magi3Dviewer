@@ -10,6 +10,7 @@ export function createScene(element: HTMLElement, animateLoopCallback: () => any
     camera.position.set(0, 1.5, 3);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     element.appendChild(renderer.domElement);
@@ -43,6 +44,7 @@ export function createScene(element: HTMLElement, animateLoopCallback: () => any
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 

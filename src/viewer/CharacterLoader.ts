@@ -184,6 +184,12 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                             alphaTex.anisotropy = 4
                         }
 
+                        if (pbrTex) {
+                            pbrTex.magFilter = THREE.LinearFilter
+                            pbrTex.minFilter = THREE.LinearFilter
+                            pbrTex.anisotropy = 4
+                        }
+
                         finalTex.magFilter = THREE.LinearFilter
                         finalTex.minFilter = THREE.LinearFilter
                         finalTex.anisotropy = 4
