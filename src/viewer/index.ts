@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { createScene } from './Scene'
-import { getCharacterIdList } from './CharacterLoader'
-import characterList from '../models/getStyle3dCharacterMstList.json'
+import { getCharacterIdList, getCharacterNameById } from './CharacterLoader'
 import * as CharacterController from './CharacterController'
 import { initSelector } from './UIControls'
 import Stats from 'three/addons/libs/stats.module.js';
@@ -32,11 +31,11 @@ function tryChangeCharacterByHash(): boolean {
     } else return false
 }
 
-export async function setupViewer() {
+export function setupViewer() {
     initSelector(
         selector,
         characterStringIdList.reduce((obj, id) => {
-            obj[`${id} - ${characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name || 'Unknown'}`] = id
+            obj[`${id} - ${getCharacterNameById(id)}`] = id
             return obj
         }, {} as Record<string, string>),
         value => {

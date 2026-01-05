@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { channel2AlphaMap, imageData2Texture, input2ImageData, mixImage, parseCtrlMap } from './Texture';
+import characterList from '../models/getStyle3dCharacterMstList.json'
 
 /*
 examples:
@@ -22,7 +23,17 @@ console.log('All models:', allModels)
 console.log('All textures:', allTextures)
 
 export function getCharacterIdList() {
-    return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+)_battle_unit\//)![1]))
+    return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+).*\//)![1]))
+}
+
+export function getCharacterNameById(id: number | string): string {
+    if (typeof id == 'number') id = id.toString()
+    return characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name
+        || {
+            '100101': 'Madoka Kaname (Magical Girl)',
+            '100102': 'Madoka Kaname (School Uniform)',
+        }[id]
+        || 'Unknown'
 }
 
 const loadProgressEl = document.getElementById('load-progress')!
@@ -38,14 +49,14 @@ console.warn = function (...data: any[]) {
     origConsoleWarn(...data)
 }
 
-function ObjFindByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
-    const key = Object.keys(obj).find(x => predicate(x))
+function ObjFindByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean, lowerCase = true) {
+    const key = Object.keys(obj).find(x => predicate(lowerCase ? x.toLowerCase() : x))
     if (key) return obj[key]
 }
 
-function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean) {
+function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean, lowerCase = true) {
     return Object.keys(obj)
-        .filter(x => predicate(x))
+        .filter(x => predicate(lowerCase ? x.toLowerCase() : x))
         .reduce((newObj, key) => {
             newObj[key] = obj[key]
             return newObj
@@ -70,8 +81,8 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
     }
     return new Promise((resolve, reject) => {
         // filter out model and textures
-        const model = ObjFindByKey(allModels, x => x.includes(`chara_${characterId}_battle_unit/`))!
-        const modelTextures = ObjFilterByKey(allTextures, x => x.includes(`chara_${characterId}_battle_unit/`))
+        const model = ObjFindByKey(allModels, x => new RegExp(`chara_${characterId}.*\/`).test(x))!
+        const modelTextures = ObjFilterByKey(allTextures, x => new RegExp(`chara_${characterId}.*\/`).test(x))
 
         // load model
         const fbxLoader = new FBXLoader();
@@ -90,7 +101,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
             const meshes: THREE.Mesh[] = []
             modelObject.traverse(child => (child as THREE.Mesh).isMesh && meshes.push(child as THREE.Mesh))
 
-            await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve) => {
+            await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve, _reject) => {
                 try {
                     /*
                     mesh.name may be:
@@ -205,10 +216,10 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                         });
                     }
 
-                    resolve()
-
                 } catch (error) {
                     console.error(`Error applying texture to ${mesh.name}:`, error)
+                } finally {
+                    resolve()
                 }
             })))
 

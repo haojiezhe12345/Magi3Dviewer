@@ -4,9 +4,6 @@
 
 body {
     margin: 0;
-}
-
-#viewer {
     background-color: #333;
 }
 
@@ -21,6 +18,7 @@ body {
 
 #menu-controls {
     flex: 1;
+    overflow: auto;
 }
 
 #menu-controls>div {

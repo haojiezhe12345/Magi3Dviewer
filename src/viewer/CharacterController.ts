@@ -80,10 +80,7 @@ export async function switchCharacter(id: number | string) {
 export function playAnimation(name: string | undefined = undefined, loop = false) {
     if (!(character && mixer)) return
 
-    if (!name) {
-        name = 'CommonWait'
-        loop = true
-    }
+    if (!name) loop = true
 
     /*
     character and its weapon have seperate animations
@@ -94,7 +91,13 @@ export function playAnimation(name: string | undefined = undefined, loop = false
 
     if it plays `CommonWait_L`, `CommonWait_L_1` should also be played
     */
-    const animations = character.animations.filter(x => x.name.startsWith(name))
+    const animations = character.animations.filter(x => {
+        if (name) {
+            return x.name.startsWith(name)
+        } else {
+            return x.name.startsWith('CommonWait') || x.name.startsWith('DungeonWait')
+        }
+    })
     if (animations.length == 0) {
         console.warn(`Animation "${name}" not found in "${character.name}"`)
         return
