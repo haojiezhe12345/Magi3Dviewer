@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { channel2AlphaMap, imageData2Texture, input2ImageData, mixImage, parseCtrlMap } from './Texture';
+import { channel2AlphaMap, imageData2Texture, input2ImageData, loadTexture, mixImage, parseCtrlMap } from './Texture';
 import characterList from '../models/getStyle3dCharacterMstList.json'
 
 /*
@@ -100,6 +100,7 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
 
             const meshes: THREE.Mesh[] = []
             modelObject.traverse(child => (child as THREE.Mesh).isMesh && meshes.push(child as THREE.Mesh))
+            Object.assign(window, { meshes })
 
             await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve, _reject) => {
                 try {
@@ -133,6 +134,12 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                             meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
                         }
                     }
+                    if (name.includes('face')) {
+                        meshTextures = ObjFilterByKey(
+                            { ...meshTextures, ...ObjFilterByKey(modelTextures, x => x.includes('eye')) }, // add `eyehighlight_ctrl.png`
+                            x => !x.includes('face_ctrl') // remove `face_ctrl.png`
+                        )
+                    }
                     console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
                     const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))!
@@ -145,10 +152,80 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
 
                     // mix color and shadow map and set texture
                     if (name.includes('face')) {
-                        // face does not have control map / should not use
-                        mesh.material = new THREE.MeshStandardMaterial({
-                            map: imageData2Texture(await mixImage(shadowMap, colorMap, 0.67), { colorSpace: THREE.SRGBColorSpace })
+                        const colorTex = await loadTexture(colorMap, { colorSpace: THREE.SRGBColorSpace });
+                        const shadowTex = await loadTexture(shadowMap, { colorSpace: THREE.SRGBColorSpace });
+                        const ctrlTex = await loadTexture(ctrlMap!);
+
+                        const material = new THREE.MeshStandardMaterial({
+                            map: colorTex,
+                            // transparent: true,
                         });
+
+                        // 2. Inject your custom Blush/Highlight logic
+                        material.onBeforeCompile = (shader) => {
+                            // Add your extra uniforms
+                            shader.uniforms.tShadow = { value: shadowTex };
+                            shader.uniforms.tCtrl = { value: ctrlTex };
+
+                            shader.uniforms.uShadowMix = { value: 0.67 }
+                            shader.uniforms.uHighlightBrightness = { value: 1.0 }
+                            shader.uniforms.uBlushStrength = { value: 0.33 };
+
+                            // Update Vertex Shader to handle UV1 (uv1 attribute)
+                            shader.vertexShader = /*glsl*/`
+                                attribute vec2 uv1;
+                                varying vec2 vUv;
+                                varying vec2 vUv2;
+                                ${shader.vertexShader}
+                            `.replace(
+                                '#include <uv_vertex>',
+                                /*glsl*/`
+                                #include <uv_vertex>
+                                vUv = uv;
+                                vUv2 = uv1;
+                                `
+                            );
+
+                            // Update Fragment Shader
+                            shader.fragmentShader = /*glsl*/`
+                                varying vec2 vUv;
+                                varying vec2 vUv2;
+
+                                uniform sampler2D tShadow;
+                                uniform sampler2D tCtrl;
+                                
+                                uniform float uShadowMix;
+                                uniform float uHighlightBrightness;
+                                uniform float uBlushStrength;
+                                ${shader.fragmentShader}
+                            `.replace(
+                                '#include <map_fragment>',
+                                /*glsl*/`
+                                vec4 faceColor = texture2D(map, vUv);
+                                vec4 faceShadow = texture2D(tShadow, vUv);
+                                vec4 faceCtrl = texture2D(tCtrl, vUv2);
+                                
+                                // mix color and shadow map
+                                faceColor.rgb = mix(faceShadow.rgb, faceColor.rgb, uShadowMix);
+
+                                float eyeMask = step(vUv2.y, 0.5); // extract eye highlights (bottom-half)
+                                float highlightIntensity = smoothstep(0.5, 1.0, faceCtrl.r) * eyeMask; // hide pixels with value < 0.5
+                                vec3 highlightColor = vec3(highlightIntensity * uHighlightBrightness);
+
+                                float blushMask = step(0.5, vUv2.y); // extract blush (top-half)
+                                float blushFactor = faceCtrl.r * blushMask * uBlushStrength; // calculate factor
+                                vec3 blushCyan = vec3(0.0, blushFactor, blushFactor); // map red to grenn-blue, used for subtraction later
+
+                                faceColor.rgb += highlightColor; // add eye highlights
+                                faceColor.rgb -= blushCyan; // add blush (subtract the inverted red)
+
+                                // Apply back to the standard variable 'diffuseColor'
+                                diffuseColor = faceColor;
+                                `
+                            );
+                        };
+
+                        mesh.material = material
                     }
                     else {
                         let ctrlMapData: ImageData | undefined,

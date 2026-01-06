@@ -9,9 +9,9 @@ const gl = canvas.getContext('webgl2', {
     alpha: true
 })!;
 
-export async function loadTexture(url: string) {
+export async function loadTexture(url: string, textureProps: Partial<THREE.Texture> = {}) {
     const tex = await texLoader.loadAsync(url);
-    tex.colorSpace = THREE.SRGBColorSpace;
+    Object.assign(tex, textureProps)
     return tex;
 }
 
