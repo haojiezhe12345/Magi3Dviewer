@@ -39,6 +39,11 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
 
             await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve, _reject) => {
                 try {
+                    const meshMaterialNames: string[] = Array.isArray(mesh.material)
+                        ? mesh.material.map(x => x.name)
+                        : [mesh.material.name]
+                    console.log(`Material names of "${mesh.name}":`, meshMaterialNames)
+
                     /*
                     mesh.name may be:
                     Acc_Mesh (hair accessories)
@@ -64,6 +69,10 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                         else if (name.includes('weapon')) {
                             meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('weapon'))
                         }
+                        // holy mami has `eye_nohighlight` that uses face map
+                        else if (name.includes('eye')) {
+                            meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('face'))
+                        }
                         // defaults to `weapon`
                         else {
                             meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('weapon'))
@@ -77,18 +86,28 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                     }
                     console.log(`Using textures for mesh [${mesh.name} -> ${name}]:`, meshTextures)
 
-                    const colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))!
-                    const shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))!
-                    const ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
+                    let colorMap = ObjFindByKey(meshTextures, x => x.includes('color'))
+                    let shadowMap = ObjFindByKey(meshTextures, x => x.includes('shadow'))
+                    let ctrlMap = ObjFindByKey(meshTextures, x => x.includes('ctrl'))
+
+                    if (!colorMap && shadowMap) {
+                        colorMap = shadowMap
+                        // shadowMap = undefined
+                    }
 
                     console.log(`${name} color  ->`, colorMap)
                     console.log(`${name} shadow ->`, shadowMap)
                     console.log(`${name} ctrl   ->`, ctrlMap)
 
+                    if (!colorMap) {
+                        console.warn(`Could not find a color map for "${mesh.name}"`)
+                        return
+                    }
+
                     // mix color and shadow map and set texture
                     if (name.includes('face')) {
                         const colorTex = await loadTexture(colorMap, { colorSpace: THREE.SRGBColorSpace });
-                        const shadowTex = await loadTexture(shadowMap, { colorSpace: THREE.SRGBColorSpace });
+                        const shadowTex = await loadTexture(shadowMap!, { colorSpace: THREE.SRGBColorSpace });
                         const ctrlTex = await loadTexture(ctrlMap!);
 
                         const material = new THREE.MeshStandardMaterial({
@@ -164,7 +183,8 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                     }
                     else {
                         let ctrlMapData: ImageData | undefined,
-                            alphaData: ImageData,
+                            alphaData: ImageData | undefined,
+                            shadowMapData: ImageData | undefined,
                             alphaTex: THREE.Texture | null = null,
                             pbrTex: THREE.Texture | null = null,
                             finalTex: THREE.Texture;
@@ -181,7 +201,7 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                                                                       body_shadow[alpha] --> final alpha map
                             */
                             ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap!))
-                            const shadowMapData = await input2ImageData(shadowMap)
+                            shadowMapData = await input2ImageData(shadowMap!)
                             alphaTex = channel2AlphaMap(shadowMapData)
                             const bodyImg = await mixImage(shadowMapData, colorMap, ctrlMapData)
                             const spaceImg = ObjFindByKey(meshTextures, x => x.includes('space'))!
@@ -196,9 +216,25 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                             */
                             if (ctrlMap) {
                                 ({ ctrlMapData, alphaData, pbrTex } = await parseCtrlMap(ctrlMap))
+                            }
+                            if (shadowMap) {
+                                shadowMapData = await input2ImageData(shadowMap)
+                                finalTex = imageData2Texture(await mixImage(shadowMapData, colorMap, ctrlMapData || 0.67), { colorSpace: THREE.SRGBColorSpace })
+                            } else {
+                                finalTex = await loadTexture(colorMap)
+                            }
+
+                            // FBX has `transparent` material -> use alpha map from shadow map
+                            // example: ultimate madoka's body (transparent), 加賀見まさら's body (trans), アリナ・グレイ's weapon (trs)
+                            // this condition should always place in front of `alpha`, as these two may exist together
+                            if (shadowMapData && meshMaterialNames.some(x => x.includes('trans') || x.includes('trs'))) {
+                                alphaTex = channel2AlphaMap(shadowMapData)
+                            }
+                            // has `alpha` material -> use alpha map frpm ctrl map
+                            // example: homura's glasses
+                            else if (alphaData && meshMaterialNames.some(x => x.includes('alpha'))) {
                                 alphaTex = imageData2Texture(alphaData)
                             }
-                            finalTex = imageData2Texture(await mixImage(shadowMap, colorMap, ctrlMapData || 0.67), { colorSpace: THREE.SRGBColorSpace })
                         }
 
                         if (alphaTex) {
@@ -221,15 +257,13 @@ export async function loadCharacter(fbxPathUrl: Record<string, string>, textureP
                             map: finalTex,
                             metalnessMap: pbrTex, // blue channel
                             roughnessMap: pbrTex, // green channel
-                            metalness: 1.0,
-                            roughness: 1.0,
                             transparent: Boolean(alphaTex),
                             alphaMap: alphaTex,
                         });
                     }
 
                 } catch (error) {
-                    console.error(`Error applying texture to ${mesh.name}:`, error)
+                    console.error(`Error applying texture to "${mesh.name}":`, error)
                 } finally {
                     resolve()
                 }
