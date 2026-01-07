@@ -31,6 +31,15 @@
         "isExistVoice": true
       },
       {
+        "style3dCharacterMstId": 100104,
+        "type": 1,
+        "name": "鹿目まどか/晴着",
+        "resourceName": "chara_100103_battle_unit",
+        "homeMotionResourceName": "chara_10010301_home",
+        "sortOrder": 100104,
+        "isExistVoice": true
+      },
+      {
         "style3dCharacterMstId": 100201,
         "type": 1,
         "name": "暁美ほむら/魔法少女",
