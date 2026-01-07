@@ -1,42 +1,9 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { channel2AlphaMap, imageData2Texture, input2ImageData, loadTexture, mixImage, parseCtrlMap } from './Texture';
-import characterList from '../models/getStyle3dCharacterMstList.json'
+import { channel2AlphaMap, imageData2Texture, input2ImageData, loadTexture, mixImage, parseCtrlMap } from './Texture.js';
+import { ObjFindByKey, ObjFilterByKey, humanizeBytes } from './utils.js';
 
-/*
-examples:
-../models/chara_100101_battle_unit/chara_100101_battle_unit.fbx
-../models/chara_100107_battle_unit/chara_100107_battle_unit.fbx
-*/
-const allModels = import.meta.glob(`../models/**/*.fbx*`, { as: 'url', eager: true })
-/*
-examples:
-../models/chara_100101_battle_unit/chara_100101_acc_color.png (hair accessories)
-../models/chara_100101_battle_unit/chara_100101_body_color.png
-../models/chara_100101_battle_unit/chara_100101_face_color.png
-../models/chara_100101_battle_unit/chara_100101_hair_color.png
-../models/chara_100101_battle_unit/chara_100101_weapon_a_color.png (there may be weapon_b, c, ...)
-*/
-const allTextures = import.meta.glob(`../models/**/*.png`, { as: 'url', eager: true })
-
-console.log('All models:', allModels)
-console.log('All textures:', allTextures)
-
-export function getCharacterIdList() {
-    return Object.keys(allModels).map(x => parseInt(x.match(/chara_(\d+).*\//)![1]))
-}
-
-export function getCharacterNameById(id: number | string): string {
-    if (typeof id == 'number') id = id.toString()
-    return characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name
-        || {
-            '100101': 'Madoka Kaname (Magical Girl)',
-            '100102': 'Madoka Kaname (School Uniform)',
-        }[id]
-        || 'Unknown'
-}
-
-const loadProgressEl = document.getElementById('load-progress')!
+const fbxLoader = new FBXLoader();
 
 // suppress warning `THREE.FBXLoader: unknown attribute mapping type NoMappingInformation`
 const origConsoleWarn = console.warn
@@ -49,58 +16,26 @@ console.warn = function (...data: any[]) {
     origConsoleWarn(...data)
 }
 
-function ObjFindByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean, lowerCase = true) {
-    const key = Object.keys(obj).find(x => predicate(lowerCase ? x.toLowerCase() : x))
-    if (key) return obj[key]
-}
+export async function loadCharacter(fbxPathUrl: Record<string, string>, texturePathUrl: Record<string, string>, loadProgressCallback: (progress: string) => any = () => { }): Promise<THREE.Group> {
+    const fbxPath = Object.keys(fbxPathUrl)[0]
+    const characterId = parseInt(fbxPath.match(/chara_(\d+).*\//)![1])
+    const fbxUrl = fbxPathUrl[fbxPath]
 
-function ObjFilterByKey<T>(obj: Record<string, T>, predicate: (value: string) => boolean, lowerCase = true) {
-    return Object.keys(obj)
-        .filter(x => predicate(lowerCase ? x.toLowerCase() : x))
-        .reduce((newObj, key) => {
-            newObj[key] = obj[key]
-            return newObj
-        }, {} as Record<string, T>)
-}
-
-function humanizeBytes(b: number) {
-    if (b < 1024 * 100) { // < 100 KB
-        return (b / 1024).toFixed(1) + ' KB'
-    } else if (b < 1024 * 1024) { // 100 KB - 1 MB
-        return (b / 1024).toFixed(0) + ' KB'
-    } else if (b < 1024 * 1024 * 10) { // 1 MB - 10 MB
-        return (b / 1024 / 1024).toFixed(2) + ' MB'
-    } else { // > 10 MB
-        return (b / 1024 / 1024).toFixed(1) + ' MB'
-    }
-}
-
-export async function loadCharacter(scene: THREE.Scene, characterId: number | string): Promise<THREE.Group> {
-    if (typeof characterId == 'string') {
-        characterId = parseInt(characterId)
-    }
     return new Promise((resolve, reject) => {
-        // filter out model and textures
-        const model = ObjFindByKey(allModels, x => new RegExp(`chara_${characterId}.*\/`).test(x))!
-        const modelTextures = ObjFilterByKey(allTextures, x => new RegExp(`chara_${characterId}.*\/`).test(x))
-
         // load model
-        const fbxLoader = new FBXLoader();
-        console.log('Loading model:', model)
-        loadProgressEl.textContent = 'Loading FBX...'
-        fbxLoader.load(model, async (modelObject) => {
-            // add model to scene, load textures later
-            scene.add(modelObject);
+        console.log('Loading model:', fbxPathUrl)
+        loadProgressCallback('Loading FBX...')
+        fbxLoader.load(fbxUrl, async (modelObject) => {
+            // return model, load textures later
             console.log(`Model "${modelObject.name}" loaded successfully`);
             resolve(modelObject)
 
             // process and apply textures
-            loadProgressEl.textContent = 'Loading textures...'
-            console.log('Using textures:', modelTextures)
+            loadProgressCallback('Loading textures...')
+            console.log('Using textures:', texturePathUrl)
 
             const meshes: THREE.Mesh[] = []
             modelObject.traverse(child => (child as THREE.Mesh).isMesh && meshes.push(child as THREE.Mesh))
-            Object.assign(window, { meshes })
 
             await Promise.all(meshes.map(mesh => new Promise<void>(async (resolve, _reject) => {
                 try {
@@ -119,24 +54,24 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                         .replace('_mesh', '')
                         .toLowerCase();
 
-                    let meshTextures = ObjFilterByKey(modelTextures, x => x.includes(name))
+                    let meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes(name))
                     if (Object.keys(meshTextures).length == 0) {
                         // tomoe mami swimsuit
                         if (characterId == 100303 && ['glass', 'mint', 'tea'].includes(name)) {
-                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon_b'))
+                            meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('weapon_b'))
                         }
                         // `weapon_a_mesh` and `weapon_b_mesh` may use the same `weapon_a.png`
                         else if (name.includes('weapon')) {
-                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
+                            meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('weapon'))
                         }
                         // defaults to `weapon`
                         else {
-                            meshTextures = ObjFilterByKey(modelTextures, x => x.includes('weapon'))
+                            meshTextures = ObjFilterByKey(texturePathUrl, x => x.includes('weapon'))
                         }
                     }
                     if (name.includes('face')) {
                         meshTextures = ObjFilterByKey(
-                            { ...meshTextures, ...ObjFilterByKey(modelTextures, x => x.includes('eye')) }, // add `eyehighlight_ctrl.png`
+                            { ...meshTextures, ...ObjFilterByKey(texturePathUrl, x => x.includes('eye')) }, // add `eyehighlight_ctrl.png`
                             x => !x.includes('face_ctrl') // remove `face_ctrl.png`
                         )
                     }
@@ -300,14 +235,14 @@ export async function loadCharacter(scene: THREE.Scene, characterId: number | st
                 }
             })))
 
-            loadProgressEl.innerHTML = ''
+            loadProgressCallback('')
 
         }, (progress) => {
             const loaded = humanizeBytes(progress.loaded)
             const total = humanizeBytes(progress.total)
-            loadProgressEl.textContent = `Loading FBX... ${progress.lengthComputable ? `${loaded} / ${total}` : loaded}`
+            loadProgressCallback(`Loading FBX... ${progress.lengthComputable ? `${loaded} / ${total}` : loaded}`)
         }, (error) => {
-            loadProgressEl.textContent = 'Load FAILED'
+            loadProgressCallback('Load FAILED')
             reject(error)
         });
     })

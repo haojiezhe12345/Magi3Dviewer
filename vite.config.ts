@@ -8,4 +8,7 @@ export default defineConfig({
       targets: ['defaults', 'not IE 11'],
     }),
   ],
+  server: {
+    allowedHosts: true
+  }
 })

@@ -1,40 +1,75 @@
 import * as THREE from 'three'
-import { createScene } from './Scene'
-import { getCharacterIdList, getCharacterNameById } from './CharacterLoader'
-import * as CharacterController from './CharacterController'
-import { initSelector } from './UIControls'
 import Stats from 'three/addons/libs/stats.module.js';
+import ViewerScene from './Scene';
+import { initSelector } from './UIControls'
+import { getCharacterIdList, getCharacterNameById } from './Character';
 
 const viewerEl = document.getElementById('viewer')!
+const menuEl = document.getElementById('menu')!
+
+const characterSelector = document.getElementById('character-selector') as HTMLSelectElement
+const animationSelector = document.getElementById('animation-selector') as HTMLSelectElement
+const animationPlayBtn = document.getElementById('animation-play') as HTMLButtonElement
+const animationLoopBtn = document.getElementById('animation-loop') as HTMLButtonElement
+const animationStopBtn = document.getElementById('animation-stop') as HTMLButtonElement
+const loadProgressEl = document.getElementById('load-progress')!
+
+animationPlayBtn.onclick = () => scene?.character?.playAnimation(animationSelector.value)
+animationLoopBtn.onclick = () => scene?.character?.playAnimation(animationSelector.value, true)
+animationStopBtn.onclick = () => scene?.character?.mixer?.stopAllAction()
+
+let scene: ViewerScene | undefined = undefined
+
+const characterIdList = getCharacterIdList()
 
 const clock = new THREE.Clock()
 const stats = new Stats()
 
 function animateLoop() {
     const delta = clock.getDelta();
-    if (CharacterController.mixer) {
-        CharacterController.mixer.update(delta);
+    if (scene?.character?.mixer) {
+        scene.character.mixer.update(delta);
     }
     stats.update()
 }
 
-const selector = document.getElementById('character-selector') as HTMLSelectElement
-const characterStringIdList = getCharacterIdList().map(x => x.toString())
-
 function tryChangeCharacterByHash(): boolean {
     let id = location.hash.replace('#', '')
+
     if (id === '') id = '100107'
-    if (characterStringIdList.includes(id)) {
-        selector.value = id
-        CharacterController.switchCharacter(id)
-        return true
-    } else return false
+    if (!characterIdList.includes(id)) return false
+
+    characterSelector.value = id
+
+    scene?.switchCharacter(
+        id,
+        progress => loadProgressEl.textContent = progress
+    ).then(() => {
+        if (!(scene && scene.character)) return
+
+        const selectorOldValue = animationSelector.value
+
+        initSelector(
+            animationSelector,
+            scene.character.animations.reduce((obj, name) => {
+                obj[name] = name
+                return obj
+            }, {} as Record<string, string>),
+            value => value && scene?.character?.playAnimation(value)
+        );
+
+        if (scene.character.animations.includes(selectorOldValue)) {
+            animationSelector.value = selectorOldValue
+        }
+    })
+
+    return true
 }
 
 export function setupViewer() {
     initSelector(
-        selector,
-        characterStringIdList.reduce((obj, id) => {
+        characterSelector,
+        characterIdList.reduce((obj, id) => {
             obj[`${id} - ${getCharacterNameById(id)}`] = id
             return obj
         }, {} as Record<string, string>),
@@ -45,13 +80,12 @@ export function setupViewer() {
         }
     )
 
-    const scene = createScene(viewerEl, animateLoop)
-    Object.assign(window, { scene })
-    CharacterController.setScene(scene)
-
     stats.dom.style.removeProperty('top')
     stats.dom.style.bottom = '0'
-    viewerEl.appendChild(stats.dom)
+    menuEl.appendChild(stats.dom)
+
+    scene = new ViewerScene(viewerEl)
+    scene.animateLoopCallback = animateLoop
 
     window.addEventListener('hashchange', tryChangeCharacterByHash)
     tryChangeCharacterByHash()

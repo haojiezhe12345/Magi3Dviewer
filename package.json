@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview --host"
   },
@@ -16,5 +16,8 @@
   },
   "dependencies": {
     "three": "^0.182.0"
-  }
+  },
+  "workspaces": [
+    "magia-exedra-character-three"
+  ]
 }

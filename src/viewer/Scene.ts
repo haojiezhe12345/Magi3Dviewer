@@ -1,54 +1,88 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MagiaExedraCharacter3D } from 'magia-exedra-character-three'
+import { getCharacterResourceById } from './Character';
 
-export function createScene(element: HTMLElement, animateLoopCallback: () => any = () => undefined) {
-    // 1. Scene Setup
-    const scene = new THREE.Scene();
-    // scene.background = new THREE.Color(0x333333);
+export default class ViewerScene {
+    renderer: THREE.WebGLRenderer
+    scene: THREE.Scene
+    camera: THREE.PerspectiveCamera
 
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.5, 3);
+    animateLoopCallback: () => any = () => { }
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    element.appendChild(renderer.domElement);
+    constructor(element: HTMLElement) {
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.xr.enabled = true
+        console.log('MaxAnisotropy:', this.renderer.capabilities.getMaxAnisotropy())
 
-    console.log('MaxAnisotropy:', renderer.capabilities.getMaxAnisotropy())
+        element.appendChild(this.renderer.domElement);
 
-    // 2. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-    scene.add(ambientLight);
+        this.scene = new THREE.Scene();
+        // scene.background = new THREE.Color(0x333333);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-    sunLight.position.set(5, 5, 5);
-    scene.add(sunLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+        this.scene.add(ambientLight);
 
-    // 3. Controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.target.set(0, 1, 0);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        sunLight.position.set(5, 5, 5);
+        this.scene.add(sunLight);
 
+        this.camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.set(0, 1.5, 3);
 
-    // 6. Animation Loop
-    function animate() {
-        requestAnimationFrame(animate);
+        const controls = new OrbitControls(this.camera, this.renderer.domElement);
+        controls.enableDamping = true;
+        controls.target.set(0, 1, 0);
 
-        controls.update();
-        animateLoopCallback()
+        this.renderer.setAnimationLoop(() => {
+            controls.update();
+            this.animateLoopCallback()
+            this.renderer.render(this.scene, this.camera);
+        })
 
-        renderer.render(scene, camera);
+        window.addEventListener('resize', () => {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        Object.assign(window, { scene: this })
     }
 
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    character?: MagiaExedraCharacter3D
+    characterLoading = false
+    characterPending?: number | string
 
-    animate();
+    async switchCharacter(id: number | string, loadProgressCallback?: (progress: string) => any) {
+        if (this.characterLoading) {
+            this.characterPending = id
+            return
+        }
+        this.characterLoading = true
+        this.characterPending = undefined
 
-    return scene
+        try {
+            if (this.character) {
+                this.scene.remove(this.character.object)
+                this.character.dispose()
+                this.character = undefined
+            }
+
+            this.character = await MagiaExedraCharacter3D.load(getCharacterResourceById(id), loadProgressCallback)
+            this.scene.add(this.character.object)
+
+            this.character.mixer.addEventListener('finished', () => this.character?.playAnimation())
+            this.character.playAnimation()
+
+        } finally {
+            setTimeout(() => {
+                this.characterLoading = false
+                if (this.characterPending) this.switchCharacter(this.characterPending, loadProgressCallback)
+            }, 0);
+        }
+    }
 }
