@@ -1,79 +1,82 @@
-import * as THREE from 'three';
-import { loadCharacter } from "./Loader"
-import { disposeObject } from './utils';
+import MagiaExedraCharacter3D from './character'
+import characterList from './getStyle3dCharacterMstList.json'
+import { loadCharacter } from "./loader"
+import { ObjFilterByKey } from './utils'
 
-export interface CharacterResource {
-    fbxPathUrl: Record<string, string>
-    texturePathUrl: Record<string, string>
-}
+export default class MagiaExedraCharacterThree {
+    models: Record<string, string>
+    textures: Record<string, string>
 
-export class MagiaExedraCharacter3D {
-    object: THREE.Group
-    mixer: THREE.AnimationMixer
-
-    constructor(object: THREE.Group) {
-        this.object = object
-        this.mixer = new THREE.AnimationMixer(object)
+    /**
+     * Character resource manager  
+     * Allows you to list characters and create instances from the given files
+     * 
+     * @param models A list of Path-URL records to FBX model files
+     * @param textures List of Path-URL records to textures
+     * 
+     * @example
+     * To use all the models shipped with the package:
+     * ```
+     * new MagiaExedraCharacterThree(
+     *     import.meta.glob('../path_to_node_modules/magia-exedra-character-three/models/**\/*.fbx*', { as: 'url', eager: true }),
+     *     import.meta.glob('../path_to_node_modules/magia-exedra-character-three/models/**\/*.png', { as: 'url', eager: true })
+     * )
+     * ```
+     * 
+     * @example
+     * To use only specific characters:
+     * ```
+     * new MagiaExedraCharacterThree(
+     *     import.meta.glob('../path_to_node_modules/magia-exedra-character-three/models/*chara_100101*\/*.fbx*', { as: 'url', eager: true }),
+     *     import.meta.glob('../path_to_node_modules/magia-exedra-character-three/models/*chara_100101*\/*.png', { as: 'url', eager: true })
+     * )
+     * ```
+     * Here, `chara_100101` refers to "Madoka Kaname (Magical Girl)".  
+     * You can find character IDs in `node_modules/magia-exedra-character-three/getStyle3dCharacterMstList.json`.
+     * 
+     * During build, only the imported models will be bundled to `dist`, others will be tree-shaked.  
+     * Importing only the models you need will significantly reduce `dist` size.
+     * 
+     * @example
+     * You can also use your own models:
+     * ```
+     * new MagiaExedraCharacterThree(
+     *     {
+     *         "chara_100101_battle_unit/VisualRoot.fbx": "http://localhost:4173/assets/VisualRoot.fbx-BQpKl_nK.txt",
+     *         "../models/chara_100102/chara_100102.fbx.txt": "http://localhost:4173/assets/chara_100102.fbx-C7bwV_49.txt",
+     *     },
+     *     {
+     *         "chara_100101/acc_color.png": "http://localhost:4173/assets/chara_100101_acc_color-DPp_iyGq.png",
+     *         "/chara_100101_battle_unit/chara_100101_acc_ctrl.png": "http://localhost:4173/assets/chara_100101_acc_ctrl-DkjIVp5l.png",
+     *     }
+     * )
+     * ```
+     */
+    constructor(models: Record<string, string>, textures: Record<string, string>) {
+        this.models = models
+        this.textures = textures
     }
 
-    static async load(resource: CharacterResource, loadProgressCallback?: (progress: string) => any): Promise<MagiaExedraCharacter3D> {
-        const obj = await loadCharacter(resource.fbxPathUrl, resource.texturePathUrl, loadProgressCallback)
-        return new MagiaExedraCharacter3D(obj)
+    getCharacterIdList() {
+        return Object.keys(this.models).map(x => x.match(/chara_(\d+).*\//)![1])
     }
 
-    get animations(): string[] {
-        return this.object.animations
-            .filter(x => x.tracks.length > 0)
-            .map(x => x.name.replace(/_\d/, ''))
-            .sort()
+    getCharacterNameById(id: number | string): string {
+        if (typeof id == 'number') id = id.toString()
+        return characterList.payload.mstList.find(x => x.resourceName.includes(id))?.name
+            || {
+                '100101': 'Madoka Kaname (Magical Girl)',
+                '100102': 'Madoka Kaname (School Uniform)',
+            }[id]
+            || 'Unknown'
     }
 
-    playAnimation(name: string | undefined = undefined, loop = false) {
-        if (!name) loop = true
-
-        /*
-        character and its weapon have seperate animations
-    
-        for example:
-        CommonWait_L    - for body
-        CommonWait_L_1  - for weapon
-    
-        if it plays `CommonWait_L`, `CommonWait_L_1` should also be played
-        */
-        const animations = this.object.animations.filter(x => {
-            if (name) {
-                return x.name.startsWith(name)
-            } else {
-                return x.name.startsWith('CommonWait') || x.name.startsWith('DungeonWait')
-            }
-        })
-        if (animations.length == 0) {
-            console.warn(`Animation "${name}" not found in "${this.object.name}"`)
-            return
-        }
-
-        this.mixer.stopAllAction()
-
-        for (const animation of animations) {
-            if (animation.tracks.length == 0) continue
-
-            console.log('Playing animation:', animation.name)
-
-            const action = this.mixer.clipAction(animation);
-
-            if (loop) {
-                action.setLoop(THREE.LoopRepeat, Infinity);
-                action.clampWhenFinished = false;
-            } else {
-                action.setLoop(THREE.LoopOnce, 1);
-                action.clampWhenFinished = false;
-            }
-
-            action.play()
-        }
-    }
-
-    dispose() {
-        disposeObject(this.object)
+    /** Loads the FBX model and returns the character instance */
+    async loadCharacterById(id: number | string, loadProgressCallback?: (progress: string) => any): Promise<MagiaExedraCharacter3D> {
+        return new MagiaExedraCharacter3D(await loadCharacter(
+            ObjFilterByKey(this.models, x => new RegExp(`chara_${id}.*\/`).test(x)),
+            ObjFilterByKey(this.textures, x => new RegExp(`chara_${id}.*\/`).test(x)),
+            loadProgressCallback
+        ))
     }
 }

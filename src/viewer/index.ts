@@ -1,8 +1,8 @@
 import * as THREE from 'three'
 import Stats from 'three/addons/libs/stats.module.js';
-import ViewerScene from './Scene';
+import ViewerScene from './scene';
 import { initSelector } from './UIControls'
-import { getCharacterIdList, getCharacterNameById } from './Character';
+import { characters } from './character';
 
 const viewerEl = document.getElementById('viewer')!
 const menuEl = document.getElementById('menu')!
@@ -20,7 +20,7 @@ animationStopBtn.onclick = () => scene?.character?.mixer?.stopAllAction()
 
 let scene: ViewerScene | undefined = undefined
 
-const characterIdList = getCharacterIdList()
+const characterIdList = characters.getCharacterIdList()
 
 const clock = new THREE.Clock()
 const stats = new Stats()
@@ -35,6 +35,7 @@ function animateLoop() {
 
 function tryChangeCharacterByHash(): boolean {
     let id = location.hash.replace('#', '')
+    if (id === '') id = '100107'
     if (!characterIdList.includes(id)) return false
     changeCharacter(id)
     return true
@@ -72,7 +73,7 @@ export function setupViewer() {
     initSelector(
         characterSelector,
         characterIdList.reduce((obj, id) => {
-            obj[`${id} - ${getCharacterNameById(id)}`] = id
+            obj[`${id} - ${characters.getCharacterNameById(id)}`] = id
             return obj
         }, {} as Record<string, string>),
         value => {

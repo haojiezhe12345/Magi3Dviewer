@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { channel2AlphaMap, imageData2Texture, input2ImageData, loadTexture, mixImage, parseCtrlMap } from './Texture.js';
-import { ObjFindByKey, ObjFilterByKey, humanizeBytes } from './utils.js';
+import { channel2AlphaMap, imageData2Texture, input2ImageData, loadTexture, mixImage, parseCtrlMap } from './texture';
+import { ObjFindByKey, ObjFilterByKey, humanizeBytes } from './utils';
 
 const fbxLoader = new FBXLoader();
 

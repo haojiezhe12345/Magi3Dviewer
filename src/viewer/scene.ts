@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { MagiaExedraCharacter3D } from 'magia-exedra-character-three'
-import { getCharacterResourceById } from './Character';
+import type MagiaExedraCharacter3D from 'magia-exedra-character-three/character'
+import { characters } from './character';
 
 export default class ViewerScene {
     renderer: THREE.WebGLRenderer
@@ -72,7 +72,7 @@ export default class ViewerScene {
                 this.character = undefined
             }
 
-            this.character = await MagiaExedraCharacter3D.load(getCharacterResourceById(id), loadProgressCallback)
+            this.character = await characters.loadCharacterById(id, loadProgressCallback)
             this.scene.add(this.character.object)
 
             this.character.mixer.addEventListener('finished', () => this.character?.playAnimation())
