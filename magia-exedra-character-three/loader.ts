@@ -16,10 +16,13 @@ console.warn = function (...data: any[]) {
     origConsoleWarn(...data)
 }
 
-export async function loadCharacter(fbxPathUrl: Record<string, string>, texturePathUrl: Record<string, string>, loadProgressCallback: (progress: string) => any = () => { }): Promise<THREE.Group> {
+export async function loadCharacter(files: Record<string, string>, loadProgressCallback: (progress: string) => any = () => { }): Promise<THREE.Group> {
+    const fbxPathUrl = ObjFilterByKey(files, x => x.includes('.fbx'))
     const fbxPath = Object.keys(fbxPathUrl)[0]
     const characterId = parseInt(fbxPath.match(/chara_(\d+).*\//)![1])
     const fbxUrl = fbxPathUrl[fbxPath]
+
+    const texturePathUrl = ObjFilterByKey(files, x => x.includes('.png'))
 
     return new Promise((resolve, reject) => {
         // load model

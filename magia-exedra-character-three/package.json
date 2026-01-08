@@ -2,7 +2,6 @@
   "name": "magia-exedra-character-three",
   "version": "0.0.0",
   "type": "module",
-  "main": "index.js",
   "devDependencies": {
     "@types/three": "^0.182.0",
     "three": "^0.182.0"
