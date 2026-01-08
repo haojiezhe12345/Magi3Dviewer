@@ -1,4 +1,4 @@
-import characterList from '../models/getStyle3dCharacterMstList.json'
+import characterList from 'magia-exedra-character-three/getStyle3dCharacterMstList.json'
 import type { CharacterResource } from 'magia-exedra-character-three'
 import { ObjFilterByKey } from 'magia-exedra-character-three/utils'
 
@@ -7,7 +7,7 @@ examples:
 ../models/chara_100101_battle_unit/chara_100101_battle_unit.fbx
 ../models/chara_100107_battle_unit/chara_100107_battle_unit.fbx
 */
-const allModels = import.meta.glob(`../models/**/*.fbx*`, { as: 'url', eager: true })
+const allModels = import.meta.glob('../../node_modules/magia-exedra-character-three/models/**/*.fbx*', { as: 'url', eager: true })
 /*
 examples:
 ../models/chara_100101_battle_unit/chara_100101_acc_color.png (hair accessories)
@@ -16,7 +16,7 @@ examples:
 ../models/chara_100101_battle_unit/chara_100101_hair_color.png
 ../models/chara_100101_battle_unit/chara_100101_weapon_a_color.png (there may be weapon_b, c, ...)
 */
-const allTextures = import.meta.glob(`../models/**/*.png`, { as: 'url', eager: true })
+const allTextures = import.meta.glob('../../node_modules/magia-exedra-character-three/models/**/*.png', { as: 'url', eager: true })
 
 Object.assign(window, { allModels, allTextures })
 console.log('All models:', allModels)
