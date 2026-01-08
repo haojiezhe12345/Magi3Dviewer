@@ -35,9 +35,13 @@ function animateLoop() {
 
 function tryChangeCharacterByHash(): boolean {
     let id = location.hash.replace('#', '')
-
-    if (id === '') id = '100107'
     if (!characterIdList.includes(id)) return false
+    changeCharacter(id)
+    return true
+}
+
+function changeCharacter(id: number | string) {
+    if (typeof id == 'number') id = id.toString()
 
     characterSelector.value = id
 
@@ -62,8 +66,6 @@ function tryChangeCharacterByHash(): boolean {
             animationSelector.value = selectorOldValue
         }
     })
-
-    return true
 }
 
 export function setupViewer() {
@@ -88,5 +90,5 @@ export function setupViewer() {
     scene.animateLoopCallback = animateLoop
 
     window.addEventListener('hashchange', tryChangeCharacterByHash)
-    tryChangeCharacterByHash()
+    tryChangeCharacterByHash() || changeCharacter(100107)
 }
