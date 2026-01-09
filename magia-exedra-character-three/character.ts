@@ -12,13 +12,14 @@ export default class MagiaExedraCharacter3D {
     }
 
     get animations(): string[] {
-        return this.object.animations
-            .filter(x => x.tracks.length > 0)
-            .map(x => x.name.replace(/_\d/, ''))
-            .sort()
+        return [...new Set(
+            this.object.animations
+                .filter(x => x.tracks.length > 0)
+                .map(x => x.name.replace(/_\d/, ''))
+        )].sort()
     }
 
-    playAnimation(name: string | undefined = undefined, loop = false) {
+    playAnimation(name: string | undefined = undefined, loop = false): string[] {
         if (!name) loop = true
 
         /*
@@ -38,17 +39,17 @@ export default class MagiaExedraCharacter3D {
             }
         })
         if (animations.length == 0) {
-            console.warn(`Animation "${name}" not found in "${this.object.name}"`)
-            return
+            if (name) {
+                console.warn(`Animation "${name}" not found in "${this.object.name}"`)
+            } else {
+                console.warn(`Default animation not found in "${this.object.name}"`)
+            }
+            return []
         }
 
         this.mixer.stopAllAction()
 
         for (const animation of animations) {
-            if (animation.tracks.length == 0) continue
-
-            console.log('Playing animation:', animation.name)
-
             const action = this.mixer.clipAction(animation);
 
             if (loop) {
@@ -56,11 +57,16 @@ export default class MagiaExedraCharacter3D {
                 action.clampWhenFinished = false;
             } else {
                 action.setLoop(THREE.LoopOnce, 1);
-                action.clampWhenFinished = false;
+                action.clampWhenFinished = true;
             }
 
             action.play()
         }
+
+        const animationNames = animations.map(x => x.name)
+        console.log('Playing animation:', animationNames)
+
+        return animationNames
     }
 
     dispose() {

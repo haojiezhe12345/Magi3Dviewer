@@ -56,33 +56,45 @@ export default class ViewerScene {
     character?: MagiaExedraCharacter3D
     characterLoading = false
     characterPending?: number | string
+    characterPendingResolve?: (value: MagiaExedraCharacter3D) => void
 
-    async switchCharacter(id: number | string, loadProgressCallback?: (progress: string) => any) {
-        if (this.characterLoading) {
-            this.characterPending = id
-            return
-        }
-        this.characterLoading = true
-        this.characterPending = undefined
+    async switchCharacter(id: number | string, loadProgressCallback?: (progress: string) => any): Promise<MagiaExedraCharacter3D> {
+        return new Promise((resolve, reject) => {
+            if (this.characterLoading) {
+                this.characterPending = id
+                this.characterPendingResolve = resolve
+                return
+            }
+            this.characterLoading = true
+            this.characterPending = undefined
 
-        try {
             if (this.character) {
                 this.scene.remove(this.character.object)
                 this.character.dispose()
                 this.character = undefined
             }
 
-            this.character = await characters.loadCharacterById(id, loadProgressCallback)
-            this.scene.add(this.character.object)
+            characters.loadCharacterById(id, loadProgressCallback)
+                .then(character => {
+                    if (this.characterPending) return
 
-            this.character.mixer.addEventListener('finished', () => this.character?.playAnimation())
-            this.character.playAnimation()
+                    this.character = character
+                    this.scene.add(this.character.object)
 
-        } finally {
-            setTimeout(() => {
-                this.characterLoading = false
-                if (this.characterPending) this.switchCharacter(this.characterPending, loadProgressCallback)
-            }, 0);
-        }
+                    resolve(this.character)
+                })
+                .catch(e => {
+                    if (this.characterPending) return
+                    reject(e)
+                })
+                .finally(() => {
+                    this.characterLoading = false
+                    if (this.characterPending) {
+                        this.switchCharacter(this.characterPending, loadProgressCallback).then(x => {
+                            if (!this.characterPending) this.characterPendingResolve!(x)
+                        })
+                    }
+                })
+        })
     }
 }

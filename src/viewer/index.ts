@@ -49,23 +49,20 @@ function changeCharacter(id: number | string) {
     scene?.switchCharacter(
         id,
         progress => loadProgressEl.textContent = progress
-    ).then(() => {
-        if (!(scene && scene.character)) return
-
-        const selectorOldValue = animationSelector.value
-
+    ).then((character) => {
         initSelector(
             animationSelector,
-            scene.character.animations.reduce((obj, name) => {
+            character.animations.reduce((obj, name) => {
                 obj[name] = name
                 return obj
             }, {} as Record<string, string>),
-            value => value && scene?.character?.playAnimation(value)
+            value => value && character.playAnimation(value)
         );
 
-        if (scene.character.animations.includes(selectorOldValue)) {
-            animationSelector.value = selectorOldValue
-        }
+        character.mixer.addEventListener('finished', () => character.playAnimation())
+        const playing = character.playAnimation()
+
+        if (playing.length > 0) animationSelector.value = character.animations.find(x => playing.includes(x))!
     })
 }
 
